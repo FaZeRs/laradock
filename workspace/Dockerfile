@@ -554,8 +554,7 @@ RUN if [ ${INSTALL_GEARMAN} = true ]; then \
 ARG INSTALL_PHPREDIS=false
 
 RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
-    apt-get update -yqq && \
-    apt-get install -yqq php-redis \
+    apt-get install -yqq php${LARADOCK_PHP_VERSION}-redis \
 ;fi
 
 ###########################################################################
@@ -604,7 +603,7 @@ ARG INSTALL_LIBPNG=false
 
 RUN if [ ${INSTALL_LIBPNG} = true ]; then \
     apt-get update && \
-    apt-get install libpng16-16 \
+    apt-get install libpng16-16 libpng-dev \
 ;fi
 
 ###########################################################################

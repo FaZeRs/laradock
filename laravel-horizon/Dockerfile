@@ -53,16 +53,30 @@ RUN if [ ${INSTALL_BZ2} = true ]; then \
   docker-php-ext-install bz2 \
 ;fi
 
-#Install GD package:
+#Install Image Optimizers:
+ARG INSTALL_IMAGE_OPTIMIZERS=false
 ARG INSTALL_GD=false
-RUN if [ ${INSTALL_GD} = true ]; then \
-   apk add --update --no-cache freetype-dev libjpeg-turbo-dev jpeg-dev libpng-dev; \
-   if [ ${LARADOCK_PHP_VERSION} = "7.4" ]; then \
-      docker-php-ext-configure gd --with-freetype --with-jpeg; \
-   else \
-      docker-php-ext-configure gd --with-freetype-dir=/usr/lib/ --with-jpeg-dir=/usr/lib/ --with-png-dir=/usr/lib/; \
-   fi && \
-   docker-php-ext-install gd \
+ARG INSTALL_IMAGEMAGICK=false
+RUN if [ ${INSTALL_IMAGE_OPTIMIZERS} = true ]; then \
+    apk add --update --no-cache libjpeg jpeg-dev jpegoptim libpng-dev optipng pngquant gifsicle libjpeg-turbo-dev freetype-dev && \
+    if [ ${INSTALL_GD} = true ]; then \
+      if [ ${LARADOCK_PHP_VERSION} = "7.4" ] || [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
+        docker-php-ext-configure gd --with-freetype --with-jpeg; \
+      else \
+        docker-php-ext-configure gd --with-freetype-dir=/usr/lib/ --with-jpeg-dir=/usr/lib/ --with-png-dir=/usr/lib/; \
+      fi && \
+      docker-php-ext-install gd \
+    ;fi && \
+    if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
+        apk add --update --no-cache imagemagick-dev libtool && \
+        git clone https://github.com/Imagick/imagick /tmp/imagick && \
+        cd /tmp/imagick && \
+        phpize && ./configure --with-png --with-jpeg --with-zlib --with-webp --with-rsvg && \
+        make && make install && \
+        rm -rf /tmp/imagick && \
+        docker-php-ext-enable imagick && \
+        php -m | grep -q 'imagick' \
+    ;fi \
 ;fi
 
 #Install GMP package:
@@ -71,16 +85,6 @@ RUN if [ ${INSTALL_GMP} = true ]; then \
    apk add --update --no-cache gmp gmp-dev; \
    docker-php-ext-install gmp \
 ;fi
-
-#Install ImageMagick package:
-ARG INSTALL_IMAGEMAGICK=false
-RUN set -eux; \
-  if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
-    apk add --update --no-cache imagemagick-dev; \
-    pecl install imagick; \
-    docker-php-ext-enable imagick; \
-    php -m | grep -q 'imagick'; \
-  fi
 
 #Install BCMath package:
 ARG INSTALL_BCMATH=false

@@ -50,7 +50,7 @@ RUN set -xe; \
       # base image (https://github.com/Laradock/php-fpm).
       #
       # next lines are here becase there is no auto build on dockerhub see https://github.com/laradock/laradock/pull/1903#issuecomment-463142846
-      libzip-dev zip unzip && \
+      libzip-dev zip unzip git && \
       if [ ${LARADOCK_PHP_VERSION} = "7.3" ] || [ ${LARADOCK_PHP_VERSION} = "7.4" ] || [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
         docker-php-ext-configure zip; \
       else \
@@ -686,9 +686,15 @@ USER root
 ARG INSTALL_IMAGEMAGICK=false
 
 RUN if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
+    apt-get update -yqq && \
     apt-get install -y libmagickwand-dev imagemagick && \
-    pecl install imagick && \
-    docker-php-ext-enable imagick \
+    git clone https://github.com/Imagick/imagick /tmp/imagick && \
+    cd /tmp/imagick && \
+    phpize && ./configure && \
+    make && make install && \
+    rm -rf /tmp/imagick && \
+    docker-php-ext-enable imagick && \
+    php -m | grep -q 'imagick' \
 ;fi
 
 ###########################################################################
@@ -738,7 +744,7 @@ ENV LARADOCK_PHALCON_VERSION ${LARADOCK_PHALCON_VERSION}
 COPY ./phalcon.ini /usr/local/etc/php/conf.d/phalcon.ini.disable
 
 RUN if [ $INSTALL_PHALCON = true ]; then \
-    apt-get update && apt-get install -y unzip libpcre3-dev gcc make re2c git automake autoconf\
+    apt-get update && apt-get install -y unzip libpcre3-dev gcc make re2c automake autoconf\
     && git clone https://github.com/jbboehr/php-psr.git \
     && cd php-psr \
     && phpize \
@@ -883,7 +889,7 @@ USER root
 ARG INSTALL_AUDIOWAVEFORM=false
 
 RUN if [ ${INSTALL_AUDIOWAVEFORM} = true ]; then \
-   apt-get -y install git wget make cmake gcc g++ libmad0-dev libid3tag0-dev libsndfile1-dev libgd-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev \
+   apt-get -y install wget make cmake gcc g++ libmad0-dev libid3tag0-dev libsndfile1-dev libgd-dev libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev \
    && git clone https://github.com/bbc/audiowaveform.git \
    && cd audiowaveform \
    && wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz \
