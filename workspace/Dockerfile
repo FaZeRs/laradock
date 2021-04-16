@@ -584,7 +584,8 @@ RUN if [ "${INSTALL_TAINT}" = true ]; then \
 ARG INSTALL_LIBPNG=false
 
 RUN if [ ${INSTALL_LIBPNG} = true ]; then \
-    apt-get -yqq install libpng16-16 \
+    apt-get update && \
+    apt-get install libpng16-16 libpng-dev \
 ;fi
 
 ###########################################################################

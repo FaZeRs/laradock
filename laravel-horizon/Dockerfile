@@ -118,7 +118,7 @@ RUN set -eux; \
     docker-php-ext-enable imagick; \
     php -m | grep -q 'imagick'; \
   fi
-
+  
 #Install GMP package:
 ARG INSTALL_GMP=false
 RUN if [ ${INSTALL_GMP} = true ]; then \
@@ -288,7 +288,13 @@ RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
   && rm -r memcached \
   && rm /tmp/memcached.tar.gz \
   && docker-php-ext-enable memcached \
-  ;fi
+;fi
+
+#Install Exif package:
+ARG INSTALL_EXIF=false
+RUN if [ ${INSTALL_EXIF} = true ]; then \
+    docker-php-ext-install exif \
+;fi
 
 RUN rm /var/cache/apk/* \
   && mkdir -p /var/www
