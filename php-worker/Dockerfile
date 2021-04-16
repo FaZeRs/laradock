@@ -337,6 +337,12 @@ RUN if [ ${INSTALL_XMLRPC} = true ]; then \
     docker-php-ext-install xmlrpc \
 ;fi
 
+#Install Exif package:
+ARG INSTALL_EXIF=false
+RUN if [ ${INSTALL_EXIF} = true ]; then \
+    docker-php-ext-install exif \
+;fi
+
 #
 #--------------------------------------------------------------------------
 # Optional Supervisord Configuration
